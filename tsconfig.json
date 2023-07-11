@@ -1,0 +1,11 @@
+{
+  "extends": "@modelsjs/tsconfig/tsconfig",
+  "compilerOptions": {
+    "outDir": "build"
+  },
+  "include": [
+    "src",
+    "node_modules/@modelsjs/types",
+    "../../node_modules/@modelsjs/types"
+  ]
+}

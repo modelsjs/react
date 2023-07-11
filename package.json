@@ -1,0 +1,16 @@
+{
+  "name": "@modelsjs/react",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@modelsjs/model": "^0.0.1",
+    "@modelsjs/resolver": "^0.0.1",
+    "@modelsjs/tsconfig": "^0.0.1",
+    "@modelsjs/types": "^0.0.1"
+  }
+}
