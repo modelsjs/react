@@ -1,58 +1,38 @@
 import type { FC, PropsWithChildren, ReactNode } from 'react';
-import type { TResolver } from '@modelsjs/resolver';
-import React, { createContext, Suspense, useContext } from 'react';
-import { getState, Model, ModelState } from '@modelsjs/model';
-import { resolve } from '@modelsjs/resolver';
+import React, { createContext, Suspense, memo } from 'react';
+import { ResolverController } from './Controller';
+import { useResolver } from './useResolver';
 
-export const Resolving: FC<PropsWithChildren<{}>> = ({ children }) => {
-    const resolver = useContext(Context);
+export enum ResolverState {
+    Resolving = 'resolving',
 
-    resolver.run();
-
-    if (!resolver.isPending) {
-        return null;
-    }
-
-    return <>{children}</>;
-};
+    Resolved = 'resolved'
+}
 
 export const Resolver: FC<PropsWithChildren<{
     fallback: ReactNode;
     resolvers: any[]
-}>> = ({fallback, resolvers, children}) => {
+}>> = memo(({ fallback, resolvers, children }) => {
     return (
-        <Context.Provider value={new Controller(resolvers)}>
-            <Suspense fallback={<Resolving>{fallback}</Resolving>}>
-                {children}
+        <ResolverContext.Provider value={ new ResolverController(resolvers) }>
+            <Suspense fallback={ fallback }>
+                { children }
+                <Wait/>
             </Suspense>
-        </Context.Provider>
-
+        </ResolverContext.Provider>
     );
-};
+});
 
-class Controller {
-    private readonly models: Set<Model> = new Set();
+export const Wait: FC<PropsWithChildren<{}>> = memo(({ children }) => {
+    const resolver = useResolver();
 
-    get isPending() {
-        return Boolean(this.models.size);
+    resolver.run();
+
+    if (resolver.promise) {
+        throw resolver.promise;
     }
 
-    constructor(private readonly resolvers: TResolver[]) {}
+    return <>{ children }</>;
+});
 
-    public async run() {
-        return resolve([...this.models], this.resolvers);
-    }
-
-    public resolve = <T extends Model>(model: T): T => {
-        resolve.sync([model], this.resolvers);
-
-        if (getState(model) === ModelState.Initial) {
-            this.models.add(model);
-        }
-
-        return model;
-    }
-}
-
-export const Context = createContext<Controller>(new Controller([]));
-
+export const ResolverContext = createContext<ResolverController>(new ResolverController([]));

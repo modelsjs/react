@@ -3,14 +3,14 @@ import { useState, useEffect, useContext } from 'react';
 import { ModelState, construct, on, once, getError, getState } from '@modelsjs/model';
 
 import { Config } from './config';
-import { Context } from './Resolver';
+import { ResolverContext } from './Resolver';
 
-export function useModel<C extends TModelClass, P extends TModelProps<TModelInstace<C>>>(
+export function useModel<C extends TModelClass, P extends TModelProps<C>>(
     Class: C,
-    props: P
+    props: P = {} as P
 ): TModelInstace<C, P> {
     const { suspense, mutable } = useContext(Config);
-    const { resolve } = useContext(Context);
+    const { resolve } = useContext(ResolverContext);
 
     const model = resolve(construct(Class, props));
 
@@ -18,7 +18,7 @@ export function useModel<C extends TModelClass, P extends TModelProps<TModelInst
     const [ state, setState ] = useState(getState(model));
     const [ error, setError ] = useState(getError(model));
 
-    useEffect(() => on(model, 'revision', (revision) => {
+    useEffect(() => on(model, 'revision', (revision: number) => {
         if (!mutable) {
             setRevision(revision);
         }
