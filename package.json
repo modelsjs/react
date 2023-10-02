@@ -1,16 +1,26 @@
 {
   "name": "@modelsjs/react",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "type": "module",
   "main": "build/index.js",
   "types": "build/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./build/index.d.ts",
+      "default": "./build/index.js"
+    }
+  },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "build:clean": "rimraf build",
+    "prepublishOnly": "npm run build:clean && npm run build"
   },
   "dependencies": {
-    "@modelsjs/model": "^0.0.1",
-    "@modelsjs/resolver": "^0.0.1",
+    "@modelsjs/model": "^0.1.0",
+    "@modelsjs/resolver": "^0.1.0"
+  },
+  "devDependencies": {
     "@modelsjs/tsconfig": "^0.0.1",
-    "@modelsjs/types": "^0.0.1"
+    "rimraf": "^5.0.5"
   }
 }

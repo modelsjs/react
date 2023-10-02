@@ -1,4 +1,4 @@
-import type { TModelClass, TModelProps, TModelInstace } from '@modelsjs/model';
+import type { TModelClass, TModelProps, TModelInstace, TModelError } from '@modelsjs/model';
 import { useState, useEffect, useContext } from 'react';
 import { ModelState, construct, on, once, getError, getState } from '@modelsjs/model';
 
@@ -6,9 +6,31 @@ import { Config } from './config';
 import { ResolverContext } from './Resolver';
 
 export function useModel<C extends TModelClass, P extends TModelProps<C>>(
+    Class: C
+): TModelInstace<C>
+export function useModel<C extends TModelClass, P extends TModelProps<C>>(
     Class: C,
-    props: P = {} as P
-): TModelInstace<C, P> {
+    props: P
+): TModelInstace<C>
+export function useModel<C extends TModelClass, P extends TModelProps<C>>(
+    Class: C,
+    safe: boolean
+): [TModelInstace<C>, TModelError<C>]
+export function useModel<C extends TModelClass, P extends TModelProps<C>>(
+    Class: C,
+    props: P,
+    safe: boolean
+): [TModelInstace<C>, TModelError<C>]
+export function useModel<C extends TModelClass, P extends TModelProps<C>>(
+    Class: C,
+    props: P = {} as P,
+    safe = false
+): any {
+    if (typeof props === 'boolean') {
+        safe = props;
+        props = {} as P;
+    }
+    
     const { suspense, mutable } = useContext(Config);
     const { resolve } = useContext(ResolverContext);
 
@@ -28,9 +50,17 @@ export function useModel<C extends TModelClass, P extends TModelProps<C>>(
 
     switch (state) {
         case ModelState.Error:
-            throw error;
+            if (safe) {
+                return [model, error];
+            } else {
+                throw error;
+            }
         case ModelState.Ready:
-            return model as TModelInstace<C, P>;
+            if (safe) {
+                return [model, null];
+            } else {
+                return model as TModelInstace<C, P>;
+            }
         case ModelState.Initial: {
             if (!suspense) {
                 throw new Error(`Model ${ model } is not initialized.`);
@@ -39,8 +69,8 @@ export function useModel<C extends TModelClass, P extends TModelProps<C>>(
             throw new Promise((resolve, reject) => {
                 once(model, 'state', (state) => {
                     state === ModelState.Ready
-                        ? resolve(model)
-                        : reject(getError(model));
+                        ? resolve(safe ? [model, null] : model)
+                        : safe ? resolve([model, getError(model)]) : reject(getError(model));
                 });
             });
         }

@@ -1,4 +1,4 @@
-import {createContext, version} from 'react';
+import { createContext, version } from 'react';
 
 export const Config = createContext<{
     suspense: boolean
